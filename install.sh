@@ -29,12 +29,36 @@ detect_player() {
     return 1
 }
 
+# Auto-install mpg123 if no player found
+install_player() {
+    info "No audio player found. Installing mpg123..."
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get install -y mpg123 >/dev/null 2>&1
+    elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y mpg123 >/dev/null 2>&1
+    elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -S --noconfirm mpg123 >/dev/null 2>&1
+    elif command -v zypper >/dev/null 2>&1; then
+        sudo zypper install -y mpg123 >/dev/null 2>&1
+    elif command -v brew >/dev/null 2>&1; then
+        brew install mpg123 >/dev/null 2>&1
+    else
+        error "Could not detect package manager."
+        error "Manually install mpg123 and rerun this script."
+        exit 1
+    fi
+
+    if command -v mpg123 >/dev/null 2>&1; then
+        info "mpg123 installed successfully."
+    else
+        error "Failed to install mpg123."
+        error "Manually install mpg123 and rerun this script."
+        exit 1
+    fi
+}
+
 if ! detect_player; then
-    error "No supported audio player found."
-    info "Install one of: mpg123, pw-play, paplay, ffplay"
-    info "  Ubuntu/Debian: sudo apt install mpg123"
-    info "  macOS: afplay is built-in"
-    exit 1
+    install_player
 fi
 
 # Prevent duplicate installs
