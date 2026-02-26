@@ -17,6 +17,14 @@ if ! command -v curl >/dev/null 2>&1; then
     exit 1
 fi
 
+# Detect Git Bash / MINGW / MSYS on Windows
+if [[ "$OSTYPE" == msys* ]] || [[ "$OSTYPE" == mingw* ]] || [[ "$OSTYPE" == cygwin* ]]; then
+    error "Git Bash / MINGW does not support audio playback."
+    info "Use PowerShell instead:"
+    info "  irm https://raw.githubusercontent.com/yasharyas/fail-fahhh/main/install.ps1 | iex"
+    exit 1
+fi
+
 # Check for an audio player
 detect_player() {
     if [[ "$OSTYPE" == darwin* ]]; then
