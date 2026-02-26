@@ -17,6 +17,44 @@ __fahhh_detect_player() {
 
 FAHHH_PLAYER="${FAHHH_PLAYER:-$(__fahhh_detect_player)}"
 
+# Diagnostic command: run "fahhh test" to check setup
+fahhh() {
+    case "${1:-}" in
+        test)
+            echo "[fahhh] Sound file: $FAHHH_SOUND"
+            if [[ -f "$FAHHH_SOUND" ]]; then
+                echo "[fahhh] Sound file: found"
+            else
+                echo "[fahhh] Sound file: MISSING"
+                return 1
+            fi
+            echo "[fahhh] Player: ${FAHHH_PLAYER:-none}"
+            if [[ -z "$FAHHH_PLAYER" ]]; then
+                echo "[fahhh] ERROR: No audio player detected."
+                echo "[fahhh] Install mpg123: sudo apt install mpg123"
+                return 1
+            fi
+            echo "[fahhh] Playing test sound..."
+            case "$FAHHH_PLAYER" in
+                afplay)  afplay "$FAHHH_SOUND" ;;
+                mpg123)  mpg123 -q "$FAHHH_SOUND" ;;
+                pw-play) pw-play "$FAHHH_SOUND" ;;
+                paplay)  paplay "$FAHHH_SOUND" ;;
+                ffplay)  ffplay -nodisp -autoexit "$FAHHH_SOUND" 2>/dev/null ;;
+            esac
+            if [[ $? -eq 0 ]]; then
+                echo "[fahhh] Sound played successfully."
+            else
+                echo "[fahhh] ERROR: Player failed. Try a different player:"
+                echo "[fahhh]   export FAHHH_PLAYER=mpg123"
+            fi
+            ;;
+        *)
+            echo "Usage: fahhh test"
+            ;;
+    esac
+}
+
 __fahhh_play() {
     local last_exit=$?
     if [[ $last_exit -ne 0 && -n "$FAHHH_PLAYER" && -f "$FAHHH_SOUND" ]]; then
