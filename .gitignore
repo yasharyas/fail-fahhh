@@ -1,0 +1,8 @@
+proj-docs/
+testing/
+rules.md
+pre-requisites.md
+.env
+/fahhh.mp3
+*.log
+.DS_Store
