@@ -48,10 +48,20 @@ Then restart your terminal or run:
 ### Linux / macOS
 
 - bash 4+ or zsh 5+
-- One of these audio players:
+- One of these audio players (MP3-capable):
   - macOS: `afplay` (built-in)
-  - Linux: `mpg123`, `pw-play`, `paplay`, or `ffplay`
-  - If no player is found, the installer auto-installs `mpg123`
+  - Linux: `mpg123`, `mpv`, `ffplay`, `cvlc`, `play` (sox), `mplayer`, or `pw-play`
+  - If no player is found, the installer will prompt you to install `mpg123`
+
+Many Linux systems do not have an MP3-capable player pre-installed. The installer detects your package manager and shows the exact command to run. You can also install manually:
+
+```bash
+sudo apt install mpg123      # Debian/Ubuntu
+sudo dnf install mpg123      # Fedora
+sudo pacman -S mpg123        # Arch
+sudo zypper install mpg123   # openSUSE
+brew install mpg123          # macOS (if afplay is missing)
+```
 
 ### Windows
 
@@ -134,7 +144,7 @@ fail-fahhh/
 
 1. `fahhh.ps1` is sourced by your PowerShell profile on startup
 2. It wraps the `prompt` function to check `$LASTEXITCODE` and `$?`
-3. If a command failed, it plays the sound via .NET MediaPlayer in a background job
+3. If a command failed, it plays the sound via .NET MediaPlayer on the main thread
 4. The original exit code and prompt behavior are preserved
 
 ## License

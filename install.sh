@@ -25,44 +25,77 @@ if [[ "$OSTYPE" == msys* ]] || [[ "$OSTYPE" == mingw* ]] || [[ "$OSTYPE" == cygw
     exit 1
 fi
 
-# Check for an audio player
+# Check for an audio player (MP3-capable only)
 detect_player() {
     if [[ "$OSTYPE" == darwin* ]]; then
         command -v afplay >/dev/null 2>&1 && return 0
     fi
+    # NOTE: paplay/aplay removed - they do NOT support MP3
     command -v mpg123 >/dev/null 2>&1 && return 0
-    command -v pw-play >/dev/null 2>&1 && return 0
-    command -v paplay >/dev/null 2>&1 && return 0
+    command -v mpv >/dev/null 2>&1 && return 0
     command -v ffplay >/dev/null 2>&1 && return 0
+    command -v cvlc >/dev/null 2>&1 && return 0
+    command -v play >/dev/null 2>&1 && return 0   # sox
+    command -v mplayer >/dev/null 2>&1 && return 0
+    command -v pw-play >/dev/null 2>&1 && return 0  # unreliable for MP3
     return 1
 }
 
-# Auto-install mpg123 if no player found
+# Prompt user to install mpg123 if no MP3 player found
 install_player() {
-    info "No audio player found. Installing mpg123..."
+    info "No MP3-capable audio player found."
+    info "fahhh needs one of: mpg123, mpv, ffplay, cvlc, play (sox), mplayer"
+    echo ""
+
+    local install_cmd=""
     if command -v apt-get >/dev/null 2>&1; then
-        sudo apt-get install -y mpg123 >/dev/null 2>&1
+        install_cmd="sudo apt-get install -y mpg123"
     elif command -v dnf >/dev/null 2>&1; then
-        sudo dnf install -y mpg123 >/dev/null 2>&1
+        install_cmd="sudo dnf install -y mpg123"
     elif command -v pacman >/dev/null 2>&1; then
-        sudo pacman -S --noconfirm mpg123 >/dev/null 2>&1
+        install_cmd="sudo pacman -S --noconfirm mpg123"
     elif command -v zypper >/dev/null 2>&1; then
-        sudo zypper install -y mpg123 >/dev/null 2>&1
+        install_cmd="sudo zypper install -y mpg123"
     elif command -v brew >/dev/null 2>&1; then
-        brew install mpg123 >/dev/null 2>&1
-    else
-        error "Could not detect package manager."
-        error "Manually install mpg123 and rerun this script."
-        exit 1
+        install_cmd="brew install mpg123"
     fi
 
-    if command -v mpg123 >/dev/null 2>&1; then
-        info "mpg123 installed successfully."
+    if [[ -n "$install_cmd" ]]; then
+        info "Recommended: install mpg123 with:"
+        info "  $install_cmd"
+        echo ""
+        printf "[fahhh] Install mpg123 now? [y/N]: "
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            info "Running: $install_cmd"
+            if eval "$install_cmd"; then
+                info "mpg123 installed successfully."
+                return 0
+            else
+                error "Failed to install mpg123."
+            fi
+        else
+            info "Skipped mpg123 install."
+        fi
     else
-        error "Failed to install mpg123."
-        error "Manually install mpg123 and rerun this script."
-        exit 1
+        error "Could not detect package manager."
     fi
+
+    # Final check after prompt
+    if detect_player; then
+        return 0
+    fi
+
+    echo ""
+    info "Install an audio player manually:"
+    info "  Debian/Ubuntu:  sudo apt install mpg123"
+    info "  Fedora/RHEL:    sudo dnf install mpg123"
+    info "  Arch:           sudo pacman -S mpg123"
+    info "  openSUSE:       sudo zypper install mpg123"
+    info "  macOS:          brew install mpg123"
+    echo ""
+    info "Continuing install without audio player..."
+    info "Sound will not play until a player is installed."
 }
 
 if ! detect_player; then

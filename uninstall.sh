@@ -17,7 +17,7 @@ fi
 
 info "Uninstalling FAHHH..."
 
-# Remove hook from rc files
+# Remove hook from rc files (portable for Linux and macOS)
 remove_hook() {
     local rc_file="$1"
     local shell_name="$2"
@@ -27,9 +27,11 @@ remove_hook() {
     fi
 
     if grep -q "$HOOK_MARKER" "$rc_file" 2>/dev/null; then
-        # Remove the marker line and the source line after it
-        sed -i "/$HOOK_MARKER/d" "$rc_file"
-        sed -i '/\[ -f "\$HOME\/.fahhh\/fahhh\.sh" \] && source "\$HOME\/.fahhh\/fahhh\.sh"/d' "$rc_file"
+        # Portable removal: create temp file (works on both GNU and BSD sed)
+        local tmp_file
+        tmp_file=$(mktemp)
+        grep -v "$HOOK_MARKER" "$rc_file" | grep -v '\[ -f "\$HOME/\.fahhh/fahhh\.sh" \] && source' > "$tmp_file"
+        mv "$tmp_file" "$rc_file"
         info "Hook removed from $rc_file"
     fi
 

@@ -8,10 +8,15 @@ __fahhh_detect_player() {
     if [[ "$OSTYPE" == darwin* ]]; then
         command -v afplay >/dev/null 2>&1 && echo "afplay" && return
     fi
+    # Priority order: reliable MP3 players first
+    # NOTE: paplay/aplay removed - they do NOT support MP3
     command -v mpg123 >/dev/null 2>&1 && echo "mpg123" && return
-    command -v pw-play >/dev/null 2>&1 && echo "pw-play" && return
-    command -v paplay >/dev/null 2>&1 && echo "paplay" && return
+    command -v mpv >/dev/null 2>&1 && echo "mpv" && return
     command -v ffplay >/dev/null 2>&1 && echo "ffplay" && return
+    command -v cvlc >/dev/null 2>&1 && echo "cvlc" && return
+    command -v play >/dev/null 2>&1 && echo "play" && return      # sox
+    command -v mplayer >/dev/null 2>&1 && echo "mplayer" && return
+    command -v pw-play >/dev/null 2>&1 && echo "pw-play" && return # unreliable MP3
     echo ""
 }
 
@@ -38,9 +43,12 @@ fahhh() {
             case "$FAHHH_PLAYER" in
                 afplay)  afplay "$FAHHH_SOUND" ;;
                 mpg123)  mpg123 -q "$FAHHH_SOUND" ;;
+                mpv)     mpv --no-video --really-quiet "$FAHHH_SOUND" ;;
+                ffplay)  ffplay -nodisp -autoexit -loglevel quiet "$FAHHH_SOUND" ;;
+                cvlc)    cvlc --play-and-exit --quiet "$FAHHH_SOUND" 2>/dev/null ;;
+                play)    play -q "$FAHHH_SOUND" ;;
+                mplayer) mplayer -really-quiet "$FAHHH_SOUND" ;;
                 pw-play) pw-play "$FAHHH_SOUND" ;;
-                paplay)  paplay "$FAHHH_SOUND" ;;
-                ffplay)  ffplay -nodisp -autoexit "$FAHHH_SOUND" 2>/dev/null ;;
             esac
             if [[ $? -eq 0 ]]; then
                 echo "[fahhh] Sound played successfully."
@@ -65,14 +73,23 @@ __fahhh_play() {
             mpg123)
                 mpg123 -q "$FAHHH_SOUND" &>/dev/null &
                 ;;
-            pw-play)
-                pw-play "$FAHHH_SOUND" &>/dev/null &
-                ;;
-            paplay)
-                paplay "$FAHHH_SOUND" &>/dev/null &
+            mpv)
+                mpv --no-video --really-quiet "$FAHHH_SOUND" &>/dev/null &
                 ;;
             ffplay)
-                ffplay -nodisp -autoexit "$FAHHH_SOUND" &>/dev/null &
+                ffplay -nodisp -autoexit -loglevel quiet "$FAHHH_SOUND" &>/dev/null &
+                ;;
+            cvlc)
+                cvlc --play-and-exit --quiet "$FAHHH_SOUND" &>/dev/null &
+                ;;
+            play)
+                play -q "$FAHHH_SOUND" &>/dev/null &
+                ;;
+            mplayer)
+                mplayer -really-quiet "$FAHHH_SOUND" &>/dev/null &
+                ;;
+            pw-play)
+                pw-play "$FAHHH_SOUND" &>/dev/null &
                 ;;
         esac
         disown 2>/dev/null
