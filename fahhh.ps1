@@ -7,6 +7,37 @@ $script:FahhhSound = if ($env:FAHHH_SOUND) {
     Join-Path $env:USERPROFILE ".fahhh\sounds\fahhh.mp3"
 }
 
+# Diagnostic command: run "fahhh test" to check setup
+function fahhh {
+    param([string]$Command)
+    switch ($Command) {
+        "test" {
+            Write-Host "[fahhh] Sound file: $script:FahhhSound"
+            if (Test-Path $script:FahhhSound) {
+                Write-Host "[fahhh] Sound file: found"
+            } else {
+                Write-Host "[fahhh] Sound file: MISSING"
+                return
+            }
+            Write-Host "[fahhh] Playing test sound..."
+            try {
+                Add-Type -AssemblyName presentationCore
+                $player = New-Object System.Windows.Media.MediaPlayer
+                $player.Open([Uri](Resolve-Path $script:FahhhSound).Path)
+                $player.Play()
+                Start-Sleep -Milliseconds 3000
+                $player.Close()
+                Write-Host "[fahhh] Sound played successfully."
+            } catch {
+                Write-Host "[fahhh] ERROR: Playback failed: $_"
+            }
+        }
+        default {
+            Write-Host "Usage: fahhh test"
+        }
+    }
+}
+
 $script:FahhhOriginalPrompt = $function:prompt
 
 function prompt {
