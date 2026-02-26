@@ -88,15 +88,15 @@ inject_hook() {
 shells_configured=0
 
 # Bash
-if [[ -n "$BASH_VERSION" ]] || [[ -f "$HOME/.bashrc" ]]; then
+if [[ -n "$BASH_VERSION" ]] || [[ "$SHELL" == */bash ]] || [[ -f "$HOME/.bashrc" ]]; then
     inject_hook "$HOME/.bashrc" "bash"
-    ((shells_configured++))
+    shells_configured=$((shells_configured + 1))
 fi
 
 # Zsh
-if [[ -n "$ZSH_VERSION" ]] || [[ -f "$HOME/.zshrc" ]]; then
+if [[ -n "$ZSH_VERSION" ]] || [[ "$SHELL" == */zsh ]] || [[ -f "$HOME/.zshrc" ]]; then
     inject_hook "$HOME/.zshrc" "zsh"
-    ((shells_configured++))
+    shells_configured=$((shells_configured + 1))
 fi
 
 if [[ $shells_configured -eq 0 ]]; then
